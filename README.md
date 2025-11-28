@@ -2,7 +2,7 @@
 
 **Complete interview preparation resources for Backend Developers with 3 years of experience**
 
-This repository contains comprehensive interview guides covering the full backend development stack with **200+ questions**, real-world code examples, and production-ready implementations.
+This repository contains comprehensive interview guides covering the full backend development stack with **250+ questions**, real-world code examples, production-ready implementations, and **advanced debugging techniques**.
 
 ---
 
@@ -27,11 +27,36 @@ This repository is designed for backend developers with **3 years of experience*
 ✅ **Detailed explanations** of concepts and trade-offs  
 ✅ **Performance optimization** techniques  
 ✅ **Security best practices**  
-✅ **Testing strategies**
+✅ **Testing strategies**  
+✅ **Real-world project scenarios**  
+✅ **Fast debugging techniques**
 
 ---
 
 ## 📖 Interview Guides
+
+### 🏆 [Real-World Projects & Debugging](./real_world_projects_debugging.md) ⭐ **START HERE**
+**Advanced guide for senior developers**
+
+**Real-World Project Scenarios:**
+- E-Commerce Flash Sale (50k+ concurrent users, inventory management)
+- Social Media Notifications (scalable real-time system)
+- Multi-Tenant SaaS (data isolation strategies)
+- Payment Processing (multiple gateways, retry logic)
+- Production issue resolution
+
+**Fast Debugging Techniques:**
+- Systematic 6-step debugging approach
+- Laravel-specific tools (Telescope, Ray, Debugbar)
+- Performance debugging (N+1 queries, memory profiling)
+- JavaScript debugging (console techniques, performance monitoring)
+- Database debugging (EXPLAIN, slow queries, locks)
+- Production debugging checklist
+- Common bug patterns and quick fixes
+
+**Best For:** Senior-level interviews, real-world problem solving, debugging mastery
+
+---
 
 ### 1. [General Interview Q&A](./interview_questions_answers.md)
 **70+ Questions** covering all technologies
@@ -127,6 +152,8 @@ This repository is designed for backend developers with **3 years of experience*
 
 | Technology | Questions | Key Topics |
 |------------|-----------|------------|
+| **Real-World Projects** | 5 scenarios | E-Commerce, Social Media, SaaS, Payments, Production Issues |
+| **Debugging** | 20+ techniques | Systematic approach, Tools, Performance, Production |
 | **PHP** | 42+ | OOP, Design Patterns, Security, Performance |
 | **Laravel** | 32+ | Eloquent, Queues, Events, API Development |
 | **MySQL** | 38+ | Query Optimization, Indexing, Transactions |
