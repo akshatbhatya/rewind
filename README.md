@@ -217,6 +217,7 @@ cat laravel_best_practices_interview.md
 ## 📅 Study Plan
 
 ### Week 1-2: Fundamentals
+- [ ] **Start with Real-World Projects & Debugging guide** ⭐
 - [ ] Review general Q&A guide
 - [ ] Study PHP core concepts and OOP
 - [ ] Practice MySQL queries and optimization
@@ -227,12 +228,14 @@ cat laravel_best_practices_interview.md
 - [ ] Study design patterns
 - [ ] Practice system design questions
 - [ ] Review security best practices
+- [ ] Practice debugging techniques from the guide
 
 ### Week 5-6: Practice & Mock Interviews
-- [ ] Implement code examples
+- [ ] Implement real-world project scenarios
 - [ ] Solve coding challenges
 - [ ] Conduct mock interviews
 - [ ] Review weak areas
+- [ ] Practice explaining debugging approaches
 
 ### Daily Routine (2 hours)
 - **30 min:** Review theory (read guides)
@@ -268,6 +271,7 @@ cat laravel_best_practices_interview.md
 
 Track your preparation progress:
 
+- [ ] **Complete Real-World Projects & Debugging guide** ⭐
 - [ ] Read all general Q&A
 - [ ] Complete PHP best practices
 - [ ] Complete MySQL best practices
@@ -275,6 +279,8 @@ Track your preparation progress:
 - [ ] Complete Laravel best practices
 - [ ] Practice 50+ coding problems
 - [ ] Complete 5+ system design scenarios
+- [ ] Practice 5+ real-world project scenarios
+- [ ] Master debugging techniques
 - [ ] Conduct 3+ mock interviews
 
 ---
@@ -330,7 +336,11 @@ Remember:
 
 **Last Updated:** November 2025  
 **Target Audience:** Backend Developers with 3 years of experience  
-**Total Questions:** 200+  
-**Total Code Examples:** 150+
+**Total Guides:** 6 (including Real-World Projects & Debugging)  
+**Total Questions:** 250+  
+**Total Code Examples:** 200+  
+**Real-World Scenarios:** 5 production-level projects  
+**Debugging Techniques:** 20+ proven methods
 
 Happy interviewing! 🚀
+
