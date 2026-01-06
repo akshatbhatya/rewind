@@ -4,6 +4,10 @@ public class array {
 
         // int[] arr={1,2,3,4,5,6};
 
+        int arr2[]=new int[4];
+
+        arr2[]={1,2,3,4};
+
         // int sum[]={};
         // int index= 0;
         // for (int i : arr) {
