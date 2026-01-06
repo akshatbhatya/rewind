@@ -6,7 +6,7 @@ public class array {
 
         int arr2[]=new int[4];
 
-        arr2[]={1,2,3,4};
+        // int arr2[]={1,2,3,4};
 
         // int sum[]={};
         // int index= 0;
