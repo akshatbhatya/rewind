@@ -9,6 +9,12 @@ class CaclulatorCls extends advanceClass{
     public int subtract(int a,int b){
         return a-b;
     }
+
+    /* overload method */
+
+    public int divide(int a , int b){
+        return a/b;
+    }
 }
 
 public class calc{
