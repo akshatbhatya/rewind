@@ -30,7 +30,7 @@ public void engine(){
 public class Main {
 
    public static void main(String[] args) {
-        UpdatedSuzuki suzuki =new UpdatedSuzuki();
+        Car suzuki =new UpdatedSuzuki();
         suzuki.exhaustSound();
         suzuki.startCar();
         suzuki.engine();
