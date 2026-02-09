@@ -14,7 +14,7 @@ public class Main {
         Mathamatics add =(int i, int j)-> i+j;
         Mathamatics subtract =(int i , int j)->i-j;
         Mathamatics multiply =(int i , int j)->i*j;
-          Mathamatics division =(int i , int j)->i/j;
+        Mathamatics division =(int i , int j)->i/j;
         
 
         System.out.println(add.operate(5, 5));
