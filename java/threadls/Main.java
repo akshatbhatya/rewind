@@ -58,7 +58,7 @@ class Counter implements Runnable {
         count++;
     }
 
-    @Override
+    // @Override
     public  void run() {
         for (int i = 0; i < 10000; i++) {
             this.increment();
@@ -75,14 +75,7 @@ public class Main {
         Task      task =  new Task();
         TaskTwo   task2 = new TaskTwo();
         TaskThree task3 = new TaskThree();
-        Counter counter =new Counter(){
-            
-            public void run(){
-                for(int i=0;i<10000;i++){
-                    this.increment();
-                }
-            }
-        };
+        Counter counter =new Counter();
         
 
 
