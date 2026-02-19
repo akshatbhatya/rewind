@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Search — DSA Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #030712;
+    --surface: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --start-color: #22d3ee;
+    --end-color: #f472b6;
+    --mid-color: #fbbf24;
+    --found-color: #4ade80;
+    --elim-color: #1e293b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #020617;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 28px 18px;
+  }
+
+  /* animated background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 20%, rgba(34,211,238,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(244,114,182,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .page { max-width: 1120px; margin: 0 auto; }
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  h1 span.b { color: var(--start-color); }
+  h1 span.s { color: var(--end-color); }
+
+  .tagline {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .vs-badge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: flex;
+    gap: 14px;
+  }
+
+  .vs-badge span { color: var(--found-color); }
+
+  /* layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+
+  .sec-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--start-color);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .sec-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-run { background: var(--mid-color); color: #000; }
+  .btn-run:hover:not(:disabled) { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-run:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-step { background: transparent; color: var(--start-color); border: 1px solid var(--start-color); }
+  .btn-step:hover:not(:disabled) { background: rgba(34,211,238,0.1); }
+  .btn-step:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-reset { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-reset:hover { border-color: var(--end-color); color: var(--end-color); }
+
+  .target-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+  }
+
+  .target-wrap label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  input[type=number] {
+    width: 60px;
+    background: transparent;
+    border: none;
+    color: var(--mid-color);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    outline: none;
+  }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .speed-row label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    min-width: 50px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    accent-color: var(--mid-color);
+    height: 3px;
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .leg-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  /* ARRAY */
+  .array-scene {
+    margin-bottom: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .range-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 4px;
+    height: 5px;
+  }
+
+  .range-seg {
+    flex: 1;
+    background: transparent;
+    transition: background 0.3s;
+  }
+
+  .range-seg.active-range { background: rgba(34,211,238,0.25); }
+
+  .ptr-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    min-width: max-content;
+  }
+
+  .ptr-slot {
+    width: 58px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    transition: all 0.3s;
+  }
+
+  .ptr-slot.show-s { color: var(--start-color); }
+  .ptr-slot.show-e { color: var(--end-color); }
+  .ptr-slot.show-m { color: var(--mid-color); }
+
+  .array-row {
+    display: flex;
+    gap: 6px;
+    min-width: max-content;
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .cell-box {
+    width: 58px; height: 58px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+  }
+
+  .cell-idx {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  /* states */
+  .cell.state-start .cell-box {
+    border-color: var(--start-color);
+    box-shadow: 0 0 12px rgba(34,211,238,0.35);
+  }
+
+  .cell.state-end .cell-box {
+    border-color: var(--end-color);
+    box-shadow: 0 0 12px rgba(244,114,182,0.35);
+  }
+
+  .cell.state-mid .cell-box {
+    border-color: var(--mid-color);
+    color: var(--mid-color);
+    box-shadow: 0 0 18px rgba(251,191,36,0.5);
+    transform: translateY(-6px) scale(1.1);
+    background: rgba(251,191,36,0.08);
+  }
+
+  .cell.state-found .cell-box {
+    border-color: var(--found-color);
+    color: var(--found-color);
+    box-shadow: 0 0 22px rgba(74,222,128,0.6);
+    transform: translateY(-10px) scale(1.15);
+    background: rgba(74,222,128,0.1);
+    animation: foundPulse 0.7s ease infinite alternate;
+  }
+
+  .cell.state-eliminated .cell-box {
+    border-color: transparent;
+    color: var(--muted);
+    background: rgba(30,41,59,0.4);
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+
+  .cell.state-start-end .cell-box {
+    border-color: var(--start-color);
+    box-shadow: 0 0 10px rgba(34,211,238,0.3), inset 0 0 10px rgba(244,114,182,0.1);
+  }
+
+  @keyframes foundPulse {
+    from { box-shadow: 0 0 16px rgba(74,222,128,0.4); }
+    to   { box-shadow: 0 0 32px rgba(74,222,128,0.8); }
+  }
+
+  /* pointer labels on cells */
+  .cell-ptr-labels {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 16px;
+  }
+
+  .ptr-tag {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.58rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  .ptr-tag.s { background: rgba(34,211,238,0.2); color: var(--start-color); }
+  .ptr-tag.e { background: rgba(244,114,182,0.2); color: var(--end-color); }
+  .ptr-tag.m { background: rgba(251,191,36,0.2); color: var(--mid-color); }
+
+  /* LOG */
+  .log-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    height: 140px;
+    overflow-y: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    line-height: 2;
+    margin-top: 16px;
+  }
+
+  .log-box::-webkit-scrollbar { width: 3px; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .ll { color: var(--muted); }
+  .ll.step { color: var(--start-color); }
+  .ll.mid  { color: var(--mid-color); }
+  .ll.found { color: var(--found-color); font-weight: 700; }
+  .ll.fail  { color: #f87171; }
+  .ll.narrow { color: var(--end-color); }
+
+  /* RIGHT PANEL */
+  .complexity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .cbox {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .cbox .cl { font-family: 'Fira Code', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+  .cbox .cv { font-family: 'Fira Code', monospace; font-size: 1.15rem; font-weight: 700; }
+  .cbox.best .cv { color: var(--found-color); }
+  .cbox.worst .cv { color: #f87171; }
+  .cbox.avg .cv { color: var(--mid-color); }
+  .cbox.space .cv { color: var(--start-color); }
+
+  /* CODE */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.68rem;
+    line-height: 1.95;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .kw  { color: #93c5fd; }
+  .ty  { color: #67e8f9; }
+  .fn  { color: #86efac; }
+  .nu  { color: #c4b5fd; }
+  .cm  { color: #475569; }
+  .op  { color: #fda4af; }
+
+  .code-line { display: block; border-radius: 3px; padding: 0 4px; margin: 0 -4px; transition: all 0.2s; }
+  .code-line.hl-mid  { background: rgba(251,191,36,0.12); border-left: 2px solid var(--mid-color); }
+  .code-line.hl-right { background: rgba(34,211,238,0.1); border-left: 2px solid var(--start-color); }
+  .code-line.hl-left  { background: rgba(244,114,182,0.1); border-left: 2px solid var(--end-color); }
+  .code-line.hl-found { background: rgba(74,222,128,0.1); border-left: 2px solid var(--found-color); }
+
+  /* state info */
+  .state-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    line-height: 2;
+    margin-bottom: 14px;
+  }
+
+  .sv { color: var(--mid-color); }
+  .sm { color: var(--muted); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* comparison count */
+  .comp-count {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .comp-count .label { font-family: 'Fira Code', monospace; font-size: 0.65rem; color: var(--muted); }
+
+  .bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 20px;
+  }
+
+  .bar-dot {
+    width: 6px;
+    background: var(--border);
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .bar-dot.lit { background: var(--mid-color); box-shadow: 0 0 6px rgba(251,191,36,0.5); }
+
+  /* vs panel */
+  .vs-panel {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 0.75rem;
+  }
+
+  .vs-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 6px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+  }
+
+  .vs-row:last-child { border: none; }
+  .vs-lin { color: var(--end-color); }
+  .vs-bin { color: var(--found-color); }
+  .vs-sep { color: var(--muted); font-size: 0.55rem; }
+  .vs-label { color: var(--muted); text-align: center; font-size: 0.6rem; }
+
+  @media(max-width:800px) {
+    .layout { grid-template-columns: 1fr; }
+    h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <h1><span class="b">Binary</span> <span class="s">Search</span></h1>
+      <div class="tagline">// Divide and conquer · O(log n) · Sorted arrays only</div>
+    </div>
+    <div class="vs-badge">
+      Linear: <span>O(n)</span> &nbsp;|&nbsp; Binary: <span>O(log n)</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="sec-label">Controls</div>
+
+        <div class="controls">
+          <button class="btn btn-run" id="runBtn" onclick="startSearch()">▶ RUN</button>
+          <button class="btn btn-step" id="stepBtn" onclick="stepOnce()">STEP →</button>
+          <button class="btn btn-reset" onclick="resetAll()">↺ RESET</button>
+          <div class="target-wrap">
+            <label>TARGET =</label>
+            <input type="number" id="target" value="55" min="-99" max="999">
+          </div>
+        </div>
+
+        <div class="speed-row">
+          <label>SPEED</label>
+          <input type="range" id="speed" min="200" max="1800" value="900" step="100">
+          <label id="speedLbl" style="min-width:50px;text-align:right">900ms</label>
+        </div>
+
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--start-color)"></div>start</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--end-color)"></div>end</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--mid-color)"></div>mid (checking)</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--found-color)"></div>found ✓</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--border)"></div>eliminated</div>
+        </div>
+
+        <div class="sec-label">Sorted Array Visualization</div>
+        <div class="array-scene">
+          <div class="array-row" id="arrayRow"></div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="sec-label">Execution Log</div>
+          <div class="log-box" id="logBox"></div>
+        </div>
+      </div>
+
+      <!-- Code -->
+      <div class="card">
+        <div class="sec-label">Java Source — Your Code</div>
+        <pre><span class="kw">public</span> <span class="ty">int</span> <span class="fn">binarySearch</span>(<span class="ty">int</span>[] arr, <span class="ty">int</span> num) {
+  <span class="ty">int</span> start <span class="op">=</span> <span class="nu">0</span>;
+  <span class="ty">int</span> end   <span class="op">=</span> arr.length <span class="op">-</span> <span class="nu">1</span>;
+  <span id="cl-mid1" class="code-line">  <span class="ty">int</span> midElement <span class="op">=</span> (start <span class="op">+</span> end) <span class="op">/</span> <span class="nu">2</span>;</span>
+
+  <span id="cl-while" class="code-line">  <span class="kw">while</span> (start <span class="op">&lt;=</span> end) {</span>
+
+    <span id="cl-check" class="code-line">    <span class="kw">if</span> (arr[midElement] <span class="op">==</span> num) {</span>
+      <span id="cl-retfound" class="code-line">      <span class="kw">return</span> midElement; <span class="cm">// ✓ Found!</span></span>
+    }
+
+    <span id="cl-right" class="code-line">    <span class="kw">if</span> (num <span class="op">&gt;</span> arr[midElement]) start <span class="op">=</span> midElement <span class="op">+</span> <span class="nu">1</span>; <span class="cm">// search RIGHT half</span></span>
+
+    <span id="cl-left"  class="code-line">    <span class="kw">if</span> (num <span class="op">&lt;</span> arr[midElement]) end <span class="op">=</span> midElement <span class="op">-</span> <span class="nu">1</span>;   <span class="cm">// search LEFT half</span></span>
+
+    <span id="cl-mid2" class="code-line">    midElement <span class="op">=</span> (start <span class="op">+</span> end) <span class="op">/</span> <span class="nu">2</span>;</span>
+  }
+  <span class="kw">return</span> <span class="op">-</span><span class="nu">1</span>; <span class="cm">// ✗ Not found</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card">
+        <div class="sec-label">Current State</div>
+        <div class="state-card" id="stateCard">
+          <div class="sm">Status</div>
+          <div class="sv">Ready — press RUN or STEP</div>
+        </div>
+
+        <div class="comp-count">
+          <span class="label">COMPARISONS:</span>
+          <div class="bars" id="compBars">
+            <!-- filled dynamically -->
+          </div>
+          <span id="compNum" style="font-family:'Fira Code',monospace;font-size:0.7rem;color:var(--mid-color);margin-left:4px">0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-label">Time Complexity</div>
+        <div class="complexity-grid">
+          <div class="cbox best"><div class="cl">Best</div><div class="cv">O(1)</div></div>
+          <div class="cbox worst"><div class="cl">Worst</div><div class="cv">O(log n)</div></div>
+          <div class="cbox avg"><div class="cl">Average</div><div class="cv">O(log n)</div></div>
+          <div class="cbox space"><div class="cl">Space</div><div class="cv">O(1)</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-label">How It Works</div>
+        <ol style="font-size:0.75rem;color:var(--muted);line-height:2;padding-left:18px">
+          <li>Requires a <strong style="color:var(--text)">sorted</strong> array</li>
+          <li>Find the <strong style="color:var(--mid-color)">middle</strong> element</li>
+          <li>If mid <strong style="color:var(--found-color)">== target</strong> → done ✓</li>
+          <li>If target <strong style="color:var(--start-color)">&gt; mid</strong> → search <em>right half</em></li>
+          <li>If target <strong style="color:var(--end-color)">&lt; mid</strong> → search <em>left half</em></li>
+          <li>Repeat — <strong style="color:var(--text)">half the array eliminated</strong> each step</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <div class="sec-label">Binary vs Linear</div>
+        <div class="vs-panel">
+          <div class="vs-row">
+            <span class="vs-label">Linear</span>
+            <span class="vs-sep">—vs—</span>
+            <span class="vs-label">Binary</span>
+          </div>
+          <div class="vs-row">
+            <span class="vs-lin">O(n)</span>
+            <span class="vs-label">Time</span>
+            <span class="vs-bin">O(log n)</span>
+          </div>
+          <div class="vs-row">
+            <span class="vs-lin">Any array</span>
+            <span class="vs-label">Requires</span>
+            <span class="vs-bin">Sorted only</span>
+          </div>
+          <div class="vs-row">
+            <span class="vs-lin">100 steps</span>
+            <span class="vs-label">n=100</span>
+            <span class="vs-bin">7 steps</span>
+          </div>
+          <div class="vs-row">
+            <span class="vs-lin">1M steps</span>
+            <span class="vs-label">n=1M</span>
+            <span class="vs-bin">20 steps</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ARR = [3, 8, 14, 21, 35, 55, 67, 72, 88, 94];
+
+  let steps = [];
+  let stepIndex = -1;
+  let running = false;
+  let timer = null;
+  let comparisons = 0;
+
+  const speedEl = document.getElementById('speed');
+  const speedLbl = document.getElementById('speedLbl');
+  speedEl.oninput = () => speedLbl.textContent = speedEl.value + 'ms';
+
+  function buildArray() {
+    const row = document.getElementById('arrayRow');
+    row.innerHTML = '';
+    ARR.forEach((v, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = 'cell-' + i;
+      cell.innerHTML = `
+        <div class="cell-ptr-labels" id="ptrlbl-${i}"></div>
+        <div class="cell-box">${v}</div>
+        <div class="cell-idx">[${i}]</div>
+      `;
+      row.appendChild(cell);
+    });
+  }
+
+  function buildCompBars(n) {
+    const bars = document.getElementById('compBars');
+    const MAX = ARR.length;
+    bars.innerHTML = '';
+    for (let i = 0; i < MAX; i++) {
+      const b = document.createElement('div');
+      b.className = 'bar-dot' + (i < n ? ' lit' : '');
+      b.style.height = (8 + i * 1.5) + 'px';
+      bars.appendChild(b);
+    }
+    document.getElementById('compNum').textContent = n;
+  }
+
+  function clearCellStates() {
+    ARR.forEach((_, i) => {
+      const c = document.getElementById('cell-' + i);
+      c.className = 'cell';
+      document.getElementById('ptrlbl-' + i).innerHTML = '';
+    });
+  }
+
+  function applyState(s, e, m, foundIdx, eliminated) {
+    clearCellStates();
+    ARR.forEach((_, i) => {
+      const c = document.getElementById('cell-' + i);
+      const ptrlbl = document.getElementById('ptrlbl-' + i);
+
+      if (foundIdx === i) {
+        c.classList.add('state-found');
+        ptrlbl.innerHTML = '<span class="ptr-tag m">FOUND</span>';
+        return;
+      }
+
+      if (eliminated.includes(i)) {
+        c.classList.add('state-eliminated');
+        return;
+      }
+
+      let tags = '';
+      if (i === m && i === s && i === e) {
+        c.classList.add('state-mid');
+        tags = '<span class="ptr-tag s">S</span><span class="ptr-tag m">M</span><span class="ptr-tag e">E</span>';
+      } else if (i === m) {
+        c.classList.add('state-mid');
+        tags = '<span class="ptr-tag m">MID</span>';
+      } else if (i === s && i === e) {
+        c.classList.add('state-start');
+        tags = '<span class="ptr-tag s">S</span><span class="ptr-tag e">E</span>';
+      } else if (i === s) {
+        c.classList.add('state-start');
+        tags = '<span class="ptr-tag s">S</span>';
+      } else if (i === e) {
+        c.classList.add('state-end');
+        tags = '<span class="ptr-tag e">E</span>';
+      }
+      ptrlbl.innerHTML = tags;
+    });
+  }
+
+  function log(msg, cls = '') {
+    const box = document.getElementById('logBox');
+    const d = document.createElement('div');
+    d.className = 'll ' + cls;
+    d.textContent = '> ' + msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setState(html) {
+    document.getElementById('stateCard').innerHTML = html;
+  }
+
+  function clearCodeHighlights() {
+    ['cl-mid1','cl-while','cl-check','cl-retfound','cl-right','cl-left','cl-mid2'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.className = 'code-line';
+    });
+  }
+
+  function hlCode(id, cls) {
+    clearCodeHighlights();
+    const el = document.getElementById(id);
+    if (el) el.className = 'code-line ' + cls;
+  }
+
+  function buildSteps(target) {
+    const stps = [];
+    let s = 0, e = ARR.length - 1;
+    let m = Math.floor((s + e) / 2);
+    let eliminated = [];
+
+    stps.push({ type: 'init', s, e, m, eliminated: [...eliminated], target });
+
+    while (s <= e) {
+      m = Math.floor((s + e) / 2);
+
+      stps.push({ type: 'check', s, e, m, eliminated: [...eliminated], target, val: ARR[m] });
+
+      if (ARR[m] === target) {
+        stps.push({ type: 'found', s, e, m, eliminated: [...eliminated], target, val: ARR[m] });
+        return stps;
+      }
+
+      if (target > ARR[m]) {
+        for (let i = s; i <= m; i++) eliminated.push(i);
+        stps.push({ type: 'go-right', s, e, m, newS: m + 1, newE: e, eliminated: [...eliminated], target });
+        s = m + 1;
+      } else {
+        for (let i = m; i <= e; i++) eliminated.push(i);
+        stps.push({ type: 'go-left', s, e, m, newS: s, newE: m - 1, eliminated: [...eliminated], target });
+        e = m - 1;
+      }
+    }
+
+    stps.push({ type: 'notfound', target, eliminated: [...Array(ARR.length).keys()] });
+    return stps;
+  }
+
+  function applyStep(step) {
+    switch (step.type) {
+      case 'init':
+        applyState(step.s, step.e, step.m, -1, []);
+        hlCode('cl-mid1', 'hl-mid');
+        log(`Array: [${ARR.join(', ')}] | Target = ${step.target}`, 'step');
+        log(`init: start=${step.s}  end=${step.e}  mid=${step.m}  arr[${step.m}]=${ARR[step.m]}`, 'step');
+        setState(`<div class="sm">Initializing</div>
+          <div class="sv">start=<b>${step.s}</b>  end=<b>${step.e}</b>  mid=<b>${step.m}</b></div>
+          <div style="color:var(--muted);font-size:0.65rem">arr[${step.m}] = ${ARR[step.m]} | target = ${step.target}</div>`);
+        break;
+
+      case 'check':
+        comparisons++;
+        buildCompBars(comparisons);
+        applyState(step.s, step.e, step.m, -1, step.eliminated);
+        hlCode('cl-check', 'hl-mid');
+        log(`Comparison #${comparisons}: arr[${step.m}]=${step.val}  vs  target=${step.target}`, 'mid');
+        setState(`<div class="sm">Comparing</div>
+          <div class="sv">arr[<b>${step.m}</b>] = <b style="color:var(--mid-color)">${step.val}</b></div>
+          <div style="color:var(--muted);font-size:0.65rem">target = ${step.target} | comparison #${comparisons}</div>
+          <div style="color:var(--muted);font-size:0.65rem;margin-top:4px">range: [${step.s}..${step.e}] — ${step.e - step.s + 1} elements left</div>`);
+        break;
+
+      case 'found':
+        applyState(-1, -1, -1, step.m, step.eliminated);
+        hlCode('cl-retfound', 'hl-found');
+        log(`✓ FOUND! arr[${step.m}] = ${step.val} == ${step.target}  →  return ${step.m}`, 'found');
+        setState(`<div class="sm">Result</div>
+          <div style="color:var(--found-color);font-size:0.9rem;font-weight:700">✓ FOUND at index ${step.m}</div>
+          <div style="color:var(--muted);font-size:0.65rem;margin-top:4px">arr[${step.m}] = ${step.val} | ${comparisons} comparison(s) total</div>`);
+        break;
+
+      case 'go-right':
+        applyState(step.newS, step.newE, Math.floor((step.newS + step.newE) / 2), -1, step.eliminated);
+        hlCode('cl-right', 'hl-right');
+        log(`target ${step.target} > arr[${step.m}]=${ARR[step.m]} → eliminate LEFT, start = ${step.newS}`, 'step');
+        setState(`<div class="sm">Go RIGHT</div>
+          <div class="sv">target <b>${step.target}</b> &gt; mid <b>${ARR[step.m]}</b></div>
+          <div style="color:var(--start-color);font-size:0.7rem">start = ${step.newS} · left half eliminated</div>`);
+        break;
+
+      case 'go-left':
+        applyState(step.newS, step.newE, Math.floor((step.newS + step.newE) / 2), -1, step.eliminated);
+        hlCode('cl-left', 'hl-left');
+        log(`target ${step.target} < arr[${step.m}]=${ARR[step.m]} → eliminate RIGHT, end = ${step.newE}`, 'narrow');
+        setState(`<div class="sm">Go LEFT</div>
+          <div class="sv">target <b>${step.target}</b> &lt; mid <b>${ARR[step.m]}</b></div>
+          <div style="color:var(--end-color);font-size:0.7rem">end = ${step.newE} · right half eliminated</div>`);
+        break;
+
+      case 'notfound':
+        clearCellStates();
+        ARR.forEach((_, i) => document.getElementById('cell-' + i).classList.add('state-eliminated'));
+        clearCodeHighlights();
+        log(`✗ NOT FOUND — ${step.target} is not in array → return -1`, 'fail');
+        setState(`<div class="sm">Result</div>
+          <div style="color:#f87171;font-size:0.9rem;font-weight:700">✗ NOT FOUND → return -1</div>
+          <div style="color:var(--muted);font-size:0.65rem;margin-top:4px">${comparisons} comparison(s) made</div>`);
+        break;
+    }
+  }
+
+  function stepOnce() {
+    const target = parseInt(document.getElementById('target').value);
+    if (stepIndex === -1) {
+      steps = buildSteps(target);
+      comparisons = 0;
+      buildCompBars(0);
+    }
+    stepIndex++;
+    if (stepIndex < steps.length) {
+      applyStep(steps[stepIndex]);
+    }
+    if (stepIndex >= steps.length - 1) {
+      document.getElementById('stepBtn').disabled = true;
+    }
+  }
+
+  function startSearch() {
+    if (running) return;
+    resetAll();
+    const target = parseInt(document.getElementById('target').value);
+    steps = buildSteps(target);
+    comparisons = 0;
+    buildCompBars(0);
+    running = true;
+    document.getElementById('runBtn').disabled = true;
+
+    function tick() {
+      stepIndex++;
+      if (stepIndex < steps.length) {
+        applyStep(steps[stepIndex]);
+        timer = setTimeout(tick, parseInt(speedEl.value));
+      } else {
+        running = false;
+        document.getElementById('runBtn').disabled = false;
+      }
+    }
+    tick();
+  }
+
+  function resetAll() {
+    clearTimeout(timer);
+    running = false;
+    stepIndex = -1;
+    steps = [];
+    comparisons = 0;
+    buildArray();
+    buildCompBars(0);
+    document.getElementById('logBox').innerHTML = '';
+    document.getElementById('runBtn').disabled = false;
+    document.getElementById('stepBtn').disabled = false;
+    clearCodeHighlights();
+    setState(`<div class="sm">Status</div><div class="sv">Ready — press RUN or STEP</div>`);
+  }
+
+  buildArray();
+  buildCompBars(0);
+</script>
+</body>
+</html>

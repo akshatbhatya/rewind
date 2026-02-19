@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Search — DSA Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --panel: #12121a;
+    --border: #1e1e2e;
+    --accent: #00f5a0;
+    --accent2: #00d9f5;
+    --warn: #f5a623;
+    --found: #a0f500;
+    --text: #c9d1d9;
+    --muted: #484860;
+    --code-bg: #0d1117;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    padding: 30px 20px;
+    overflow-x: hidden;
+  }
+
+  /* grid bg */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 30px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .panel-title {
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* Array visualization */
+  .array-wrap {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: flex-end;
+  }
+
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .cell-val {
+    width: 56px; height: 56px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--code-bg);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cell-idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .cell.checking .cell-val {
+    border-color: var(--warn);
+    color: var(--warn);
+    box-shadow: 0 0 16px rgba(245,166,35,0.4);
+    transform: translateY(-4px) scale(1.08);
+    background: rgba(245,166,35,0.08);
+  }
+
+  .cell.found .cell-val {
+    border-color: var(--found);
+    color: var(--found);
+    box-shadow: 0 0 20px rgba(160,245,0,0.5);
+    transform: translateY(-8px) scale(1.12);
+    background: rgba(160,245,0,0.1);
+    animation: pulse 0.6s ease infinite alternate;
+  }
+
+  .cell.visited .cell-val {
+    border-color: var(--muted);
+    color: var(--muted);
+    background: rgba(72,72,96,0.2);
+  }
+
+  @keyframes pulse {
+    from { box-shadow: 0 0 16px rgba(160,245,0,0.4); }
+    to   { box-shadow: 0 0 28px rgba(160,245,0,0.8); }
+  }
+
+  /* pointer arrow */
+  .pointer {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    height: 22px;
+  }
+
+  .ptr-cell {
+    width: 56px;
+    display: flex;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: var(--warn);
+    transition: all 0.35s ease;
+    opacity: 0;
+  }
+
+  .ptr-cell.active { opacity: 1; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-primary:hover { filter: brightness(1.2); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+
+  .btn-secondary:hover { background: rgba(0,217,245,0.1); }
+
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .input-wrap label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  input[type=number] {
+    width: 70px;
+    padding: 8px 10px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  input[type=number]:focus { border-color: var(--accent); }
+
+  /* Log */
+  .log {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    height: 130px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.8;
+  }
+
+  .log::-webkit-scrollbar { width: 4px; }
+  .log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .log-line { color: var(--muted); }
+  .log-line.check { color: var(--warn); }
+  .log-line.match { color: var(--found); font-weight: 700; }
+  .log-line.fail  { color: #f55; }
+
+  /* Right panel */
+  .complexity {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .comp-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .comp-card .label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .comp-card .value {
+    font-size: 1.2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .comp-card.best .value { color: var(--found); }
+  .comp-card.worst .value { color: #f55; }
+
+  /* Code */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.9;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .kw  { color: #ff79c6; }
+  .ty  { color: #8be9fd; }
+  .fn  { color: #50fa7b; }
+  .nu  { color: #bd93f9; }
+  .cm  { color: var(--muted); }
+  .hl  { background: rgba(245,166,35,0.15); display: block; margin: 0 -16px; padding: 0 16px; border-left: 2px solid var(--warn); }
+  .hl2 { background: rgba(160,245,0,0.12); display: block; margin: 0 -16px; padding: 0 16px; border-left: 2px solid var(--found); }
+
+  /* Step info */
+  .step-info {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+  }
+
+  .step-info .si-label { color: var(--muted); font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .step-info .si-val   { color: var(--accent); }
+
+  .speed-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .speed-wrap label { font-size: 0.7rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  input[type=range] { flex: 1; accent-color: var(--accent); }
+
+  /* algo steps list */
+  .algo-steps { list-style: none; margin-bottom: 16px; }
+  .algo-steps li {
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding: 6px 0 6px 20px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    line-height: 1.5;
+    transition: color 0.3s;
+  }
+  .algo-steps li::before {
+    content: attr(data-n);
+    position: absolute; left: 0;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+  }
+  .algo-steps li.active-step { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div style="max-width:1100px;margin:0 auto">
+  <h1>⟨ Linear Search ⟩</h1>
+  <div class="subtitle">// DSA Visualizer — step through the algorithm in real time</div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div>
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-title">Array Visualization</div>
+
+        <div class="controls">
+          <button class="btn btn-primary" id="startBtn" onclick="startSearch()">▶ RUN</button>
+          <button class="btn btn-secondary" onclick="stepOnce()" id="stepBtn">STEP →</button>
+          <button class="btn btn-secondary" onclick="resetAll()">↺ RESET</button>
+          <div class="input-wrap">
+            <label>TARGET:</label>
+            <input type="number" id="target" value="42" min="-99" max="99">
+          </div>
+        </div>
+
+        <div class="speed-wrap">
+          <label>SPEED:</label>
+          <input type="range" id="speed" min="100" max="1500" value="700" step="100">
+          <label id="speedLabel" style="min-width:50px">700ms</label>
+        </div>
+
+        <!-- pointer row -->
+        <div class="pointer" id="pointerRow"></div>
+        <!-- array row -->
+        <div class="array-wrap" id="arrayRow"></div>
+
+        <div class="panel-title" style="margin-top:20px">Execution Log</div>
+        <div class="log" id="log"></div>
+      </div>
+
+      <!-- Code panel -->
+      <div class="panel">
+        <div class="panel-title">Java Source Code</div>
+        <pre id="codeBlock"><span class="kw">public</span> <span class="ty">int</span> <span class="fn">linearSearch</span>(<span class="ty">int</span>[] arr, <span class="ty">int</span> num) {
+<span id="line-loop">  <span class="kw">for</span> (<span class="ty">int</span> i = <span class="nu">0</span>; i &lt; arr.length; i++) {</span>
+<span id="line-if">    <span class="kw">if</span> (arr[i] == num) {</span>
+<span id="line-return">      <span class="kw">return</span> i;  <span class="cm">// ✓ Found!</span></span>
+    }
+  }
+  <span class="kw">return</span> <span class="nu">-1</span>; <span class="cm">// ✗ Not found</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div class="panel">
+        <div class="panel-title">Time Complexity</div>
+        <div class="complexity">
+          <div class="comp-card best">
+            <div class="label">Best Case</div>
+            <div class="value">O(1)</div>
+          </div>
+          <div class="comp-card worst">
+            <div class="label">Worst Case</div>
+            <div class="value">O(n)</div>
+          </div>
+          <div class="comp-card" style="grid-column:1/-1">
+            <div class="label">Space Complexity</div>
+            <div class="value" style="color:var(--accent)">O(1)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Current Step</div>
+        <div class="step-info" id="stepInfo">
+          <div class="si-label">Status</div>
+          <span class="si-val">Ready — press RUN or STEP</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Algorithm Steps</div>
+        <ul class="algo-steps">
+          <li data-n="1" id="as1">Start at index <strong>i = 0</strong></li>
+          <li data-n="2" id="as2">Compare <strong>arr[i]</strong> with <strong>target</strong></li>
+          <li data-n="3" id="as3">If match → return <strong>index i</strong> ✓</li>
+          <li data-n="4" id="as4">If no match → increment <strong>i++</strong></li>
+          <li data-n="5" id="as5">Repeat until end of array</li>
+          <li data-n="6" id="as6">If not found → return <strong>-1</strong> ✗</li>
+        </ul>
+
+        <div class="panel-title">How It Works</div>
+        <p style="font-size:0.78rem;color:var(--muted);line-height:1.7">
+          Linear Search scans each element <em>one by one</em> from left to right.
+          It makes no assumptions about order — works on both sorted and unsorted arrays.
+          Every element is a potential match until proven otherwise.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ARR = [10, 55, 3, 42, 88, 17, 99, 6, 34, 21];
+
+  let currentStep = -1;
+  let running = false;
+  let timer = null;
+  let done = false;
+
+  // Speed slider
+  const speedSlider = document.getElementById('speed');
+  const speedLabel  = document.getElementById('speedLabel');
+  speedSlider.oninput = () => { speedLabel.textContent = speedSlider.value + 'ms'; };
+
+  function buildArray() {
+    const arrRow = document.getElementById('arrayRow');
+    const ptrRow = document.getElementById('pointerRow');
+    arrRow.innerHTML = '';
+    ptrRow.innerHTML = '';
+    ARR.forEach((v, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.id = 'cell-' + i;
+      cell.innerHTML = `<div class="cell-val">${v}</div><div class="cell-idx">[${i}]</div>`;
+      arrRow.appendChild(cell);
+
+      const ptr = document.createElement('div');
+      ptr.className = 'ptr-cell';
+      ptr.id = 'ptr-' + i;
+      ptr.textContent = '▲';
+      ptrRow.appendChild(ptr);
+    });
+  }
+
+  function log(msg, cls='log-line') {
+    const l = document.getElementById('log');
+    const d = document.createElement('div');
+    d.className = 'log-line ' + cls;
+    d.textContent = '> ' + msg;
+    l.appendChild(d);
+    l.scrollTop = l.scrollHeight;
+  }
+
+  function setStepInfo(html) {
+    document.getElementById('stepInfo').innerHTML = html;
+  }
+
+  function highlightAlgoStep(...ids) {
+    ['as1','as2','as3','as4','as5','as6'].forEach(id => {
+      document.getElementById(id).classList.remove('active-step');
+    });
+    ids.forEach(id => document.getElementById(id).classList.add('active-step'));
+  }
+
+  function highlightCodeLine(lineId) {
+    ['line-loop','line-if','line-return'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.className = '';
+    });
+    if(lineId) {
+      const el = document.getElementById(lineId);
+      if(el) el.className = (lineId === 'line-return') ? 'hl2' : 'hl';
+    }
+  }
+
+  function resetAll() {
+    clearInterval(timer);
+    running = false;
+    done = false;
+    currentStep = -1;
+    buildArray();
+    document.getElementById('log').innerHTML = '';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stepBtn').disabled = false;
+    setStepInfo('<div class="si-label">Status</div><span class="si-val">Ready — press RUN or STEP</span>');
+    highlightAlgoStep();
+    highlightCodeLine(null);
+  }
+
+  function doStep() {
+    if (done) return;
+
+    const target = parseInt(document.getElementById('target').value);
+    currentStep++;
+
+    // Clear previous pointer
+    document.querySelectorAll('.ptr-cell').forEach(p => p.classList.remove('active'));
+
+    if (currentStep === 0) {
+      log(`Starting search for target = ${target}`, 'check');
+      highlightAlgoStep('as1');
+      highlightCodeLine('line-loop');
+      setStepInfo(`<div class="si-label">Initializing</div><span class="si-val">i = 0 | target = ${target} | arr.length = ${ARR.length}</span>`);
+      return;
+    }
+
+    const i = currentStep - 1;
+
+    if (i >= ARR.length) {
+      // Not found
+      log(`Search complete — ${target} not found → return -1`, 'fail');
+      highlightAlgoStep('as6');
+      highlightCodeLine(null);
+      setStepInfo(`<div class="si-label">Result</div><span style="color:#f55;font-size:0.85rem;font-weight:700">NOT FOUND → return -1</span>`);
+      done = true;
+      clearInterval(timer);
+      running = false;
+      document.getElementById('startBtn').disabled = false;
+      return;
+    }
+
+    // Mark previous as visited
+    if (i > 0) {
+      const prev = document.getElementById('cell-' + (i - 1));
+      if (prev && !prev.classList.contains('found')) {
+        prev.classList.remove('checking');
+        prev.classList.add('visited');
+      }
+    }
+
+    // Current cell
+    const cell = document.getElementById('cell-' + i);
+    cell.classList.add('checking');
+    document.getElementById('ptr-' + i).classList.add('active');
+
+    highlightCodeLine('line-if');
+    highlightAlgoStep('as2');
+
+    const match = ARR[i] === target;
+
+    if (match) {
+      cell.classList.remove('checking');
+      cell.classList.add('found');
+      log(`i=${i} → arr[${i}]=${ARR[i]} == ${target} ✓ MATCH! return ${i}`, 'match');
+      highlightCodeLine('line-return');
+      highlightAlgoStep('as3');
+      setStepInfo(`<div class="si-label">Result</div><span style="color:var(--found);font-size:0.85rem;font-weight:700">FOUND at index ${i} ✓</span><br><span class="si-val" style="font-size:0.7rem">arr[${i}] = ${ARR[i]} == ${target}</span>`);
+      done = true;
+      clearInterval(timer);
+      running = false;
+      document.getElementById('startBtn').disabled = false;
+    } else {
+      log(`i=${i} → arr[${i}]=${ARR[i]} ≠ ${target}  skip`, 'check');
+      highlightAlgoStep('as4');
+      setStepInfo(`<div class="si-label">Checking</div><span class="si-val">i = ${i} | arr[${i}] = ${ARR[i]} ≠ ${target}</span><br><div class="si-label" style="margin-top:6px">Comparisons so far</div><span class="si-val">${i + 1} / ${ARR.length}</span>`);
+    }
+  }
+
+  function stepOnce() {
+    if (done) return;
+    if (currentStep === -1) {
+      log('Array: [' + ARR.join(', ') + ']');
+    }
+    doStep();
+  }
+
+  function startSearch() {
+    if (running) return;
+    resetAll();
+    const target = parseInt(document.getElementById('target').value);
+    log('Array: [' + ARR.join(', ') + ']');
+    running = true;
+    document.getElementById('startBtn').disabled = true;
+    doStep(); // init step
+    timer = setInterval(() => {
+      doStep();
+      if (done) clearInterval(timer);
+    }, parseInt(speedSlider.value));
+  }
+
+  // init
+  buildArray();
+</script>
+</body>
+</html>
+

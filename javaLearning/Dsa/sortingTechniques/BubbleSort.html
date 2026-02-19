@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bubble Sort — DSA Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Outfit:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #05070f;
+    --surface: #0c0f1e;
+    --card: #131729;
+    --border: #1f2640;
+    --compare: #f97316;
+    --swap: #e879f9;
+    --sorted: #34d399;
+    --normal: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #4b5680;
+    --code-bg: #03050c;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    padding: 26px 18px;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 70% 40% at 10% 10%, rgba(249,115,22,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 90%, rgba(232,121,249,0.06) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  .page { max-width:1120px; margin:0 auto; }
+
+  /* HEADER */
+  .header { margin-bottom:26px; }
+
+  h1 {
+    font-size:2.6rem;
+    font-weight:900;
+    letter-spacing:-1.5px;
+    line-height:1;
+  }
+
+  h1 .b1 { color: var(--compare); }
+  h1 .b2 { color: var(--swap); }
+
+  .tagline {
+    font-family:'Fira Code',monospace;
+    font-size:0.7rem;
+    color:var(--muted);
+    margin-top:7px;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:16px;
+  }
+
+  .card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:14px;
+  }
+
+  .card:last-child { margin-bottom:0; }
+
+  .sec {
+    font-family:'Fira Code',monospace;
+    font-size:0.62rem;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:var(--compare);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .sec::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* CONTROLS */
+  .controls {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:14px;
+  }
+
+  .btn {
+    padding:9px 18px;
+    border-radius:8px;
+    border:none;
+    font-family:'Fira Code',monospace;
+    font-size:0.73rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.18s;
+    letter-spacing:0.5px;
+  }
+
+  .btn-run  { background:var(--compare); color:#000; }
+  .btn-run:hover:not(:disabled)  { filter:brightness(1.2); transform:translateY(-1px); }
+  .btn-run:disabled  { opacity:0.35; cursor:not-allowed; }
+
+  .btn-step { background:transparent; color:var(--swap); border:1px solid var(--swap); }
+  .btn-step:hover:not(:disabled) { background:rgba(232,121,249,0.1); }
+  .btn-step:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .btn-reset { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .btn-reset:hover { border-color:var(--sorted); color:var(--sorted); }
+
+  .speed-row {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .speed-row label { font-family:'Fira Code',monospace; font-size:0.63rem; color:var(--muted); min-width:48px; }
+  input[type=range] { flex:1; accent-color:var(--compare); }
+
+  /* LEGEND */
+  .legend {
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .leg { display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--muted); }
+  .leg-dot { width:10px; height:10px; border-radius:2px; }
+
+  /* BAR CHART ARRAY */
+  .bar-scene {
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+    height:160px;
+    margin-bottom:14px;
+    padding: 0 4px;
+  }
+
+  .bar-wrap {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    height:100%;
+    justify-content:flex-end;
+    transition: all 0.25s;
+  }
+
+  .bar {
+    width:100%;
+    border-radius:6px 6px 2px 2px;
+    background: var(--normal);
+    transition: height 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.25s;
+    position:relative;
+  }
+
+  .bar-val {
+    font-family:'Fira Code',monospace;
+    font-size:0.72rem;
+    font-weight:700;
+    color:var(--text);
+    transition: color 0.25s;
+  }
+
+  .bar-idx {
+    font-family:'Fira Code',monospace;
+    font-size:0.58rem;
+    color:var(--muted);
+  }
+
+  /* box array below bars */
+  .box-row {
+    display:flex;
+    gap:6px;
+    margin-bottom:10px;
+  }
+
+  .box {
+    flex:1;
+    height:50px;
+    border-radius:8px;
+    border:2px solid var(--border);
+    background:var(--card);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fira Code',monospace;
+    font-size:0.95rem;
+    font-weight:700;
+    transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* states */
+  .state-compare .bar { background: var(--compare); box-shadow: 0 0 14px rgba(249,115,22,0.5); }
+  .state-compare .bar-val { color: var(--compare); }
+  .state-compare .box { border-color:var(--compare); color:var(--compare); background:rgba(249,115,22,0.08); box-shadow:0 0 12px rgba(249,115,22,0.3); transform:translateY(-4px) scale(1.06); }
+
+  .state-swap .bar { background: var(--swap); box-shadow: 0 0 18px rgba(232,121,249,0.6); }
+  .state-swap .bar-val { color: var(--swap); }
+  .state-swap .box { border-color:var(--swap); color:var(--swap); background:rgba(232,121,249,0.08); box-shadow:0 0 16px rgba(232,121,249,0.4); transform:translateY(-6px) scale(1.1); animation:swapBounce 0.4s ease; }
+
+  .state-sorted .bar { background: var(--sorted); box-shadow: 0 0 10px rgba(52,211,153,0.4); }
+  .state-sorted .bar-val { color: var(--sorted); }
+  .state-sorted .box { border-color:var(--sorted); color:var(--sorted); background:rgba(52,211,153,0.06); }
+
+  @keyframes swapBounce {
+    0%   { transform: translateY(0) scale(1); }
+    40%  { transform: translateY(-12px) scale(1.15); }
+    70%  { transform: translateY(-4px) scale(1.05); }
+    100% { transform: translateY(-6px) scale(1.1); }
+  }
+
+  /* pass indicator */
+  .pass-row {
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+
+  .pass-badge {
+    font-family:'Fira Code',monospace;
+    font-size:0.6rem;
+    padding:3px 10px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--muted);
+    transition:all 0.3s;
+  }
+
+  .pass-badge.active { border-color:var(--compare); color:var(--compare); background:rgba(249,115,22,0.1); }
+  .pass-badge.done   { border-color:var(--sorted); color:var(--sorted); background:rgba(52,211,153,0.08); }
+
+  /* LOG */
+  .log-box {
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    height:130px;
+    overflow-y:auto;
+    font-family:'Fira Code',monospace;
+    font-size:0.7rem;
+    line-height:2;
+  }
+  .log-box::-webkit-scrollbar { width:3px; }
+  .log-box::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .ll { color:var(--muted); }
+  .ll.cmp { color:var(--compare); }
+  .ll.swp { color:var(--swap); font-weight:700; }
+  .ll.pass { color:var(--normal); }
+  .ll.done { color:var(--sorted); font-weight:700; }
+
+  /* RIGHT PANEL */
+  .complexity-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:14px;
+  }
+
+  .cbox {
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px;
+    text-align:center;
+  }
+  .cbox .cl { font-family:'Fira Code',monospace; font-size:0.58rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
+  .cbox .cv { font-family:'Fira Code',monospace; font-size:1.1rem; font-weight:700; }
+  .cbox.best .cv  { color:var(--sorted); }
+  .cbox.worst .cv { color:#f87171; }
+  .cbox.avg .cv   { color:var(--compare); }
+  .cbox.space .cv { color:var(--normal); }
+
+  /* state info */
+  .state-card {
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:13px;
+    font-family:'Fira Code',monospace;
+    font-size:0.7rem;
+    line-height:2;
+    margin-bottom:12px;
+  }
+  .sm { font-size:0.58rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .sv { color:var(--compare); }
+
+  /* swap counter */
+  .counters {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .cnt-box {
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px;
+    text-align:center;
+  }
+  .cnt-box .cl { font-family:'Fira Code',monospace; font-size:0.58rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .cnt-box .cv { font-family:'Fira Code',monospace; font-size:1.3rem; font-weight:700; }
+  #swapCount { color:var(--swap); }
+  #cmpCount  { color:var(--compare); }
+
+  /* code */
+  pre {
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px;
+    font-family:'Fira Code',monospace;
+    font-size:0.67rem;
+    line-height:1.95;
+    overflow-x:auto;
+  }
+
+  .kw  { color:#93c5fd; }
+  .ty  { color:#67e8f9; }
+  .fn  { color:#86efac; }
+  .nu  { color:#c4b5fd; }
+  .cm  { color:#334155; }
+  .op  { color:#fda4af; }
+
+  .cl-line { display:block; border-radius:3px; padding:0 4px; margin:0 -4px; transition:all 0.2s; }
+  .hl-outer { background:rgba(59,130,246,0.12); border-left:2px solid var(--normal); }
+  .hl-inner { background:rgba(249,115,22,0.12); border-left:2px solid var(--compare); }
+  .hl-if    { background:rgba(232,121,249,0.12); border-left:2px solid var(--swap); }
+  .hl-swap  { background:rgba(52,211,153,0.12); border-left:2px solid var(--sorted); }
+
+  /* how it works */
+  ol {
+    font-size:0.74rem;
+    color:var(--muted);
+    line-height:2;
+    padding-left:16px;
+  }
+
+  ol li strong { color:var(--text); }
+
+  @media(max-width:800px) {
+    .layout { grid-template-columns:1fr; }
+    h1 { font-size:1.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1><span class="b1">Bubble</span> <span class="b2">Sort</span></h1>
+    <div class="tagline">// Compare adjacent · Swap if needed · Largest bubbles to the end · O(n²)</div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div class="sec">Controls</div>
+
+        <div class="controls">
+          <button class="btn btn-run"  id="runBtn"  onclick="startSort()">▶ RUN</button>
+          <button class="btn btn-step" id="stepBtn" onclick="stepOnce()">STEP →</button>
+          <button class="btn btn-reset" onclick="resetAll()">↺ RESET</button>
+        </div>
+
+        <div class="speed-row">
+          <label>SPEED</label>
+          <input type="range" id="speed" min="150" max="1800" value="700" step="50">
+          <label id="speedLbl" style="min-width:50px;text-align:right">700ms</label>
+        </div>
+
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--normal)"></div>unsorted</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--compare)"></div>comparing</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--swap)"></div>swapping</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--sorted)"></div>sorted ✓</div>
+        </div>
+
+        <div class="sec">Pass Progress</div>
+        <div class="pass-row" id="passRow"></div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Bar Chart View</div>
+        <div class="bar-scene" id="barScene"></div>
+
+        <div class="sec">Array Box View</div>
+        <div class="box-row" id="boxRow"></div>
+
+        <div class="sec" style="margin-top:14px">Execution Log</div>
+        <div class="log-box" id="logBox"></div>
+      </div>
+
+      <!-- CODE -->
+      <div class="card">
+        <div class="sec">Your Java Code</div>
+        <pre>
+<span class="kw">public void</span> <span class="fn">sortUsingBubble</span>(<span class="ty">int</span>[] arr, <span class="ty">int</span> size) {
+  <span id="cl-outer" class="cl-line">  <span class="kw">for</span> (<span class="ty">int</span> i <span class="op">=</span> <span class="nu">0</span>; i <span class="op">&lt;</span> size; i++) {          <span class="cm">// outer pass</span></span>
+
+    <span id="cl-inner" class="cl-line">    <span class="kw">for</span> (<span class="ty">int</span> j <span class="op">=</span> <span class="nu">0</span>; j <span class="op">&lt;</span> size<span class="op">-</span>i<span class="op">-</span><span class="nu">1</span>; j++) {   <span class="cm">// inner compare</span></span>
+
+      <span id="cl-if" class="cl-line">      <span class="kw">if</span> (arr[j] <span class="op">&gt;</span> arr[j<span class="op">+</span><span class="nu">1</span>]) {             <span class="cm">// compare adjacent</span></span>
+
+        <span id="cl-swap1" class="cl-line">        <span class="ty">int</span> temp   <span class="op">=</span> arr[j];</span>
+        <span id="cl-swap2" class="cl-line">        arr[j]     <span class="op">=</span> arr[j<span class="op">+</span><span class="nu">1</span>];</span>
+        <span id="cl-swap3" class="cl-line">        arr[j<span class="op">+</span><span class="nu">1</span>]  <span class="op">=</span> temp;   <span class="cm">// swap ↕</span></span>
+      }
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card">
+        <div class="sec">Current State</div>
+        <div class="state-card" id="stateCard">
+          <div class="sm">Status</div>
+          <div class="sv">Ready — press RUN or STEP</div>
+        </div>
+
+        <div class="counters">
+          <div class="cnt-box">
+            <div class="cl">Swaps</div>
+            <div class="cv" id="swapCount">0</div>
+          </div>
+          <div class="cnt-box">
+            <div class="cl">Comparisons</div>
+            <div class="cv" id="cmpCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Complexity</div>
+        <div class="complexity-grid">
+          <div class="cbox best"> <div class="cl">Best</div> <div class="cv">O(n)</div> </div>
+          <div class="cbox worst"><div class="cl">Worst</div><div class="cv">O(n²)</div></div>
+          <div class="cbox avg">  <div class="cl">Average</div><div class="cv">O(n²)</div></div>
+          <div class="cbox space"><div class="cl">Space</div> <div class="cv">O(1)</div> </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">How It Works</div>
+        <ol>
+          <li><strong>Outer loop</strong> runs <em>n</em> passes</li>
+          <li>Each pass, <strong>inner loop</strong> compares adjacent pairs</li>
+          <li>If <strong>arr[j] &gt; arr[j+1]</strong> → swap them</li>
+          <li>After each pass, the <strong>largest unsorted</strong> element reaches its final position</li>
+          <li>Last <em>i</em> elements are already <strong>sorted</strong> — skip them</li>
+          <li>Repeat until all sorted ✓</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <div class="sec">Why "Bubble"?</div>
+        <p style="font-size:0.74rem;color:var(--muted);line-height:1.8">
+          Large values <strong style="color:var(--text)">"bubble up"</strong> to the right end of the array after each pass — just like air bubbles rising to the surface of water. The biggest element always reaches its correct position first.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const INIT = [4, 5, 2, 9, 3, 6, 1];
+  let arr = [...INIT];
+  let steps = [];
+  let stepIdx = -1;
+  let running = false;
+  let timer = null;
+  let swaps = 0, cmps = 0;
+
+  const speedEl = document.getElementById('speed');
+  document.getElementById('speedLbl').textContent = speedEl.value + 'ms';
+  speedEl.oninput = () => document.getElementById('speedLbl').textContent = speedEl.value + 'ms';
+
+  const MAX_VAL = Math.max(...INIT);
+
+  /* ── Build all steps upfront ── */
+  function buildSteps() {
+    const a = [...INIT];
+    const n = a.length;
+    const s = [];
+
+    for (let i = 0; i < n; i++) {
+      s.push({ type: 'pass-start', i, arr: [...a] });
+
+      for (let j = 0; j < n - i - 1; j++) {
+        s.push({ type: 'compare', i, j, arr: [...a] });
+
+        if (a[j] > a[j + 1]) {
+          [a[j], a[j + 1]] = [a[j + 1], a[j]];
+          s.push({ type: 'swap', i, j, arr: [...a] });
+        }
+      }
+
+      s.push({ type: 'pass-done', i, arr: [...a], sorted: n - i - 1 });
+    }
+
+    s.push({ type: 'done', arr: [...a] });
+    return s;
+  }
+
+  /* ── Render helpers ── */
+  function buildUI(a, highlight = {}) {
+    buildBars(a, highlight);
+    buildBoxes(a, highlight);
+  }
+
+  function buildBars(a, highlight) {
+    const scene = document.getElementById('barScene');
+    scene.innerHTML = '';
+    a.forEach((v, i) => {
+      const cls = cellClass(i, highlight);
+      const pct = Math.round((v / MAX_VAL) * 100);
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap ' + cls;
+      wrap.innerHTML = `
+        <div class="bar-val">${v}</div>
+        <div class="bar" style="height:${pct}%"></div>
+        <div class="bar-idx">[${i}]</div>
+      `;
+      scene.appendChild(wrap);
+    });
+  }
+
+  function buildBoxes(a, highlight) {
+    const row = document.getElementById('boxRow');
+    row.innerHTML = '';
+    a.forEach((v, i) => {
+      const cls = cellClass(i, highlight);
+      const box = document.createElement('div');
+      box.className = 'box ' + (cls ? cls.split(' ').map(c => 'state-' + c.replace('state-','')).join(' ') : '');
+      // simpler: just reuse class
+      box.className = 'box';
+      if (highlight.swap && (i === highlight.j || i === highlight.j + 1)) {
+        box.style.borderColor = 'var(--swap)';
+        box.style.color = 'var(--swap)';
+        box.style.background = 'rgba(232,121,249,0.08)';
+        box.style.transform = 'translateY(-6px) scale(1.1)';
+        box.style.boxShadow = '0 0 14px rgba(232,121,249,0.4)';
+      } else if (highlight.compare && (i === highlight.j || i === highlight.j + 1)) {
+        box.style.borderColor = 'var(--compare)';
+        box.style.color = 'var(--compare)';
+        box.style.background = 'rgba(249,115,22,0.08)';
+        box.style.transform = 'translateY(-4px) scale(1.05)';
+      } else if (highlight.sorted !== undefined && i >= highlight.sorted) {
+        box.style.borderColor = 'var(--sorted)';
+        box.style.color = 'var(--sorted)';
+        box.style.background = 'rgba(52,211,153,0.06)';
+      }
+      box.textContent = v;
+      row.appendChild(box);
+    });
+  }
+
+  function cellClass(i, h) {
+    if (h.swap && (i === h.j || i === h.j + 1)) return 'state-swap';
+    if (h.compare && (i === h.j || i === h.j + 1)) return 'state-compare';
+    if (h.sorted !== undefined && i >= h.sorted) return 'state-sorted';
+    return '';
+  }
+
+  /* ── Pass badges ── */
+  function buildPassBadges(n, active = -1, doneUpto = -1) {
+    const row = document.getElementById('passRow');
+    row.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('div');
+      b.className = 'pass-badge' + (i === active ? ' active' : '') + (i < doneUpto ? ' done' : '');
+      b.textContent = 'Pass ' + (i + 1);
+      row.appendChild(b);
+    }
+  }
+
+  /* ── Code highlight ── */
+  const codeLines = ['cl-outer','cl-inner','cl-if','cl-swap1','cl-swap2','cl-swap3'];
+  function clearHL() { codeLines.forEach(id => { const el=document.getElementById(id); if(el) el.className='cl-line'; }); }
+  function hl(id, cls) { clearHL(); const el=document.getElementById(id); if(el) el.className='cl-line '+cls; }
+  function hlMulti(...pairs) { clearHL(); pairs.forEach(([id,cls]) => { const el=document.getElementById(id); if(el) el.className='cl-line '+cls; }); }
+
+  /* ── Log ── */
+  function log(msg, cls='') {
+    const box = document.getElementById('logBox');
+    const d = document.createElement('div');
+    d.className = 'll ' + cls;
+    d.textContent = '> ' + msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setState(html) { document.getElementById('stateCard').innerHTML = html; }
+  function updCounters() {
+    document.getElementById('swapCount').textContent = swaps;
+    document.getElementById('cmpCount').textContent = cmps;
+  }
+
+  /* ── Apply one step ── */
+  function applyStep(st) {
+    const n = INIT.length;
+
+    switch (st.type) {
+      case 'pass-start':
+        buildUI(st.arr, { sorted: n - st.i });
+        buildPassBadges(n, st.i, st.i);
+        hl('cl-outer', 'hl-outer');
+        log(`━━ Pass ${st.i + 1} / ${n} ━━  (sorted: last ${st.i} elements)`, 'pass');
+        setState(`<div class="sm">Outer Loop</div><div class="sv">Pass i = ${st.i}</div><div style="color:var(--muted);font-size:0.62rem">Compare range: j = 0 to ${n - st.i - 2}</div>`);
+        break;
+
+      case 'compare':
+        cmps++;
+        updCounters();
+        buildUI(st.arr, { compare: true, j: st.j, sorted: n - st.i - 1 });
+        hl('cl-if', 'hl-if');
+        log(`Compare arr[${st.j}]=${st.arr[st.j]}  vs  arr[${st.j+1}]=${st.arr[st.j+1]}  →  ${st.arr[st.j] > st.arr[st.j+1] ? 'SWAP ↕' : 'ok ✓'}`, 'cmp');
+        setState(`<div class="sm">Comparing adjacent</div>
+          <div class="sv">j=${st.j} | arr[${st.j}]=<b style="color:var(--compare)">${st.arr[st.j]}</b>  vs  arr[${st.j+1}]=<b style="color:var(--compare)">${st.arr[st.j+1]}</b></div>
+          <div style="color:var(--muted);font-size:0.62rem">${st.arr[st.j]} > ${st.arr[st.j+1]} ? ${st.arr[st.j] > st.arr[st.j+1] ? 'YES → swap' : 'NO → skip'}</div>`);
+        break;
+
+      case 'swap':
+        swaps++;
+        updCounters();
+        buildUI(st.arr, { swap: true, j: st.j, sorted: n - st.i - 1 });
+        hlMulti(['cl-swap1','hl-swap'],['cl-swap2','hl-swap'],['cl-swap3','hl-swap']);
+        log(`↕ SWAP → arr[${st.j}]=${st.arr[st.j]}  ⟷  arr[${st.j+1}]=${st.arr[st.j+1]}`, 'swp');
+        setState(`<div class="sm">Swapping!</div>
+          <div style="color:var(--swap);font-weight:700;font-size:0.8rem">↕ arr[${st.j}] ⟷ arr[${st.j+1}]</div>
+          <div style="color:var(--muted);font-size:0.62rem;margin-top:4px">New: arr[${st.j}]=${st.arr[st.j]}  arr[${st.j+1}]=${st.arr[st.j+1]}</div>`);
+        break;
+
+      case 'pass-done':
+        buildUI(st.arr, { sorted: st.sorted });
+        buildPassBadges(n, -1, st.i + 1);
+        hl('cl-inner', 'hl-inner');
+        log(`Pass ${st.i+1} done — index ${st.sorted} is now sorted ✓  [${st.arr.join(', ')}]`, 'pass');
+        setState(`<div class="sm">Pass ${st.i+1} Done</div>
+          <div style="color:var(--sorted)">arr[${st.sorted}] = ${st.arr[st.sorted]} is in final position ✓</div>
+          <div style="color:var(--muted);font-size:0.62rem">Sorted so far: last ${n - st.sorted} elements</div>`);
+        break;
+
+      case 'done':
+        buildUI(st.arr, { sorted: 0 });
+        buildPassBadges(n, -1, n);
+        clearHL();
+        log(`✓ SORTED! Final array: [${st.arr.join(', ')}]  |  ${swaps} swaps  ${cmps} comparisons`, 'done');
+        setState(`<div class="sm">Complete!</div>
+          <div style="color:var(--sorted);font-size:0.85rem;font-weight:700">✓ Array fully sorted!</div>
+          <div style="color:var(--muted);font-size:0.62rem;margin-top:4px">[${st.arr.join(', ')}]</div>
+          <div style="color:var(--muted);font-size:0.62rem">${swaps} swaps · ${cmps} comparisons</div>`);
+        break;
+    }
+  }
+
+  /* ── Controls ── */
+  function stepOnce() {
+    if (stepIdx === -1) {
+      steps = buildSteps();
+      swaps = 0; cmps = 0;
+      updCounters();
+      buildPassBadges(INIT.length, 0, 0);
+    }
+    stepIdx++;
+    if (stepIdx < steps.length) applyStep(steps[stepIdx]);
+    if (stepIdx >= steps.length - 1) document.getElementById('stepBtn').disabled = true;
+  }
+
+  function startSort() {
+    if (running) return;
+    resetAll();
+    steps = buildSteps();
+    swaps = 0; cmps = 0;
+    updCounters();
+    running = true;
+    document.getElementById('runBtn').disabled = true;
+
+    function tick() {
+      stepIdx++;
+      if (stepIdx < steps.length) {
+        applyStep(steps[stepIdx]);
+        timer = setTimeout(tick, parseInt(speedEl.value));
+      } else {
+        running = false;
+        document.getElementById('runBtn').disabled = false;
+      }
+    }
+    tick();
+  }
+
+  function resetAll() {
+    clearTimeout(timer);
+    running = false;
+    stepIdx = -1;
+    steps = [];
+    swaps = 0; cmps = 0;
+    updCounters();
+    buildUI([...INIT], {});
+    buildPassBadges(INIT.length);
+    document.getElementById('logBox').innerHTML = '';
+    document.getElementById('runBtn').disabled = false;
+    document.getElementById('stepBtn').disabled = false;
+    clearHL();
+    setState(`<div class="sm">Status</div><div class="sv">Ready — press RUN or STEP</div>`);
+  }
+
+  // init
+  buildUI([...INIT], {});
+  buildPassBadges(INIT.length);
+</script>
+</body>
+</html>
