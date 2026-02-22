@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selection Sort — DSA Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Outfit:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #060408;
+    --surface: #100d14;
+    --card: #171220;
+    --border: #241c30;
+    --current: #a78bfa;
+    --scanning: #f59e0b;
+    --min: #06b6d4;
+    --swap: #f43f5e;
+    --sorted: #22c55e;
+    --text: #e2e8f0;
+    --muted: #4b5260;
+    --code-bg: #040206;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    padding: 26px 18px;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 15%, rgba(167,139,250,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 35% at 85% 85%, rgba(6,182,212,0.07) 0%, transparent 55%);
+    pointer-events:none;
+  }
+
+  .page { max-width:1120px; margin:0 auto; }
+
+  h1 {
+    font-size:2.6rem; font-weight:900;
+    letter-spacing:-1.5px; line-height:1; margin-bottom:6px;
+  }
+  h1 .s1 { color:var(--current); }
+  h1 .s2 { color:var(--min); }
+
+  .tagline {
+    font-family:'Fira Code',monospace;
+    font-size:0.7rem; color:var(--muted); margin-bottom:6px;
+  }
+
+  /* fix badge */
+  .fix-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3);
+    border-radius:20px; padding:5px 14px; margin-bottom:22px;
+    font-family:'Fira Code',monospace; font-size:0.68rem; color:var(--sorted);
+  }
+  .fix-badge .dot { width:6px; height:6px; border-radius:50%; background:var(--sorted); }
+
+  .layout {
+    display:grid; grid-template-columns:1fr 320px; gap:16px;
+  }
+
+  .card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; padding:20px; margin-bottom:14px;
+  }
+  .card:last-child { margin-bottom:0; }
+
+  .sec {
+    font-family:'Fira Code',monospace; font-size:0.6rem;
+    letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--current); margin-bottom:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .sec::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* CONTROLS */
+  .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+
+  .btn {
+    padding:9px 18px; border-radius:8px; border:none;
+    font-family:'Fira Code',monospace; font-size:0.73rem;
+    font-weight:700; cursor:pointer; transition:all 0.18s;
+  }
+  .btn-run  { background:var(--current); color:#000; }
+  .btn-run:hover:not(:disabled) { filter:brightness(1.2); transform:translateY(-1px); }
+  .btn-run:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-step { background:transparent; color:var(--min); border:1px solid var(--min); }
+  .btn-step:hover:not(:disabled) { background:rgba(6,182,212,0.1); }
+  .btn-step:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-reset { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .btn-reset:hover { border-color:var(--sorted); color:var(--sorted); }
+
+  .speed-row { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .speed-row label { font-family:'Fira Code',monospace; font-size:0.62rem; color:var(--muted); min-width:48px; }
+  input[type=range] { flex:1; accent-color:var(--current); }
+
+  /* LEGEND */
+  .legend { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  .leg { display:flex; align-items:center; gap:5px; font-size:0.67rem; color:var(--muted); }
+  .leg-dot { width:10px; height:10px; border-radius:2px; }
+
+  /* BARS */
+  .bar-scene {
+    display:flex; align-items:flex-end; gap:7px;
+    height:170px; margin-bottom:16px; padding:0 2px;
+  }
+  .bar-wrap {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; gap:5px; height:100%; justify-content:flex-end;
+  }
+  .bar {
+    width:100%; border-radius:7px 7px 2px 2px;
+    background:linear-gradient(180deg, #2d2040 0%, #1a1428 100%);
+    border:2px solid var(--border);
+    transition:height 0.35s cubic-bezier(0.34,1.2,0.64,1), background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+  .bar-val { font-family:'Fira Code',monospace; font-size:0.72rem; font-weight:700; color:var(--text); transition:color 0.25s; }
+  .bar-idx { font-family:'Fira Code',monospace; font-size:0.58rem; color:var(--muted); }
+
+  /* BOXES */
+  .box-row { display:flex; gap:7px; margin-bottom:6px; }
+  .box {
+    flex:1; height:54px; border-radius:9px;
+    border:2px solid var(--border); background:var(--card);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fira Code',monospace; font-size:1rem; font-weight:700; color:var(--text);
+    transition:all 0.3s cubic-bezier(0.34,1.4,0.64,1);
+  }
+  .ptr-labels { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; margin-bottom:4px; min-height:17px; }
+  .ptag { font-family:'Fira Code',monospace; font-size:0.55rem; padding:1px 5px; border-radius:3px; font-weight:700; }
+  .ptag.i   { background:rgba(167,139,250,0.2); color:var(--current); }
+  .ptag.j   { background:rgba(245,158,11,0.2);  color:var(--scanning); }
+  .ptag.min { background:rgba(6,182,212,0.2);   color:var(--min); }
+
+  /* CELL STATES */
+  .s-current .bar  { background:linear-gradient(180deg,rgba(167,139,250,0.6),rgba(167,139,250,0.2)); border-color:var(--current); box-shadow:0 0 14px rgba(167,139,250,0.4); }
+  .s-current .bar-val { color:var(--current); }
+  .s-current .box  { border-color:var(--current); color:var(--current); background:rgba(167,139,250,0.08); transform:translateY(-4px) scale(1.05); box-shadow:0 0 12px rgba(167,139,250,0.3); }
+
+  .s-scanning .bar { background:linear-gradient(180deg,rgba(245,158,11,0.55),rgba(245,158,11,0.15)); border-color:var(--scanning); box-shadow:0 0 12px rgba(245,158,11,0.35); }
+  .s-scanning .bar-val { color:var(--scanning); }
+  .s-scanning .box { border-color:var(--scanning); color:var(--scanning); background:rgba(245,158,11,0.07); transform:translateY(-3px) scale(1.04); }
+
+  .s-min .bar { background:linear-gradient(180deg,rgba(6,182,212,0.65),rgba(6,182,212,0.2)); border-color:var(--min); box-shadow:0 0 18px rgba(6,182,212,0.5); }
+  .s-min .bar-val { color:var(--min); }
+  .s-min .box { border-color:var(--min); color:var(--min); background:rgba(6,182,212,0.08); transform:translateY(-6px) scale(1.1); box-shadow:0 0 16px rgba(6,182,212,0.4); animation:minPulse 0.8s ease infinite alternate; }
+
+  .s-swap .bar { background:linear-gradient(180deg,rgba(244,63,94,0.65),rgba(244,63,94,0.2)); border-color:var(--swap); box-shadow:0 0 18px rgba(244,63,94,0.5); }
+  .s-swap .bar-val { color:var(--swap); }
+  .s-swap .box { border-color:var(--swap); color:var(--swap); background:rgba(244,63,94,0.08); transform:translateY(-8px) scale(1.12); box-shadow:0 0 18px rgba(244,63,94,0.4); animation:swapBounce 0.4s ease; }
+
+  .s-sorted .bar { background:linear-gradient(180deg,rgba(34,197,94,0.5),rgba(34,197,94,0.15)); border-color:var(--sorted); box-shadow:0 0 8px rgba(34,197,94,0.25); }
+  .s-sorted .bar-val { color:var(--sorted); }
+  .s-sorted .box { border-color:var(--sorted); color:var(--sorted); background:rgba(34,197,94,0.06); }
+
+  /* skipped cell (j=i case — not applicable now, but kept for clarity) */
+  .s-skip .bar-val { color:var(--muted); }
+
+  @keyframes minPulse {
+    from { box-shadow:0 0 10px rgba(6,182,212,0.3); }
+    to   { box-shadow:0 0 24px rgba(6,182,212,0.7); }
+  }
+  @keyframes swapBounce {
+    0%   { transform:translateY(0) scale(1); }
+    40%  { transform:translateY(-14px) scale(1.18); }
+    70%  { transform:translateY(-6px) scale(1.08); }
+    100% { transform:translateY(-8px) scale(1.12); }
+  }
+
+  /* PASS BADGES */
+  .pass-row { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:4px; }
+  .pbadge {
+    font-family:'Fira Code',monospace; font-size:0.58rem;
+    padding:3px 10px; border-radius:20px;
+    border:1px solid var(--border); color:var(--muted); transition:all 0.3s;
+  }
+  .pbadge.active { border-color:var(--current); color:var(--current); background:rgba(167,139,250,0.1); }
+  .pbadge.done   { border-color:var(--sorted); color:var(--sorted); background:rgba(34,197,94,0.07); }
+
+  /* LOG */
+  .log-box {
+    background:var(--code-bg); border:1px solid var(--border);
+    border-radius:8px; padding:12px 14px; height:130px; overflow-y:auto;
+    font-family:'Fira Code',monospace; font-size:0.7rem; line-height:2; margin-top:14px;
+  }
+  .log-box::-webkit-scrollbar { width:3px; }
+  .log-box::-webkit-scrollbar-thumb { background:var(--border); }
+  .ll { color:var(--muted); }
+  .ll.pass   { color:var(--current); }
+  .ll.scan   { color:var(--scanning); }
+  .ll.newmin { color:var(--min); font-weight:700; }
+  .ll.swp    { color:var(--swap); font-weight:700; }
+  .ll.done   { color:var(--sorted); font-weight:700; }
+  .ll.skip   { color:#3b4560; }
+
+  /* RIGHT */
+  .complexity-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  .cbox { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center; }
+  .cbox .cl { font-family:'Fira Code',monospace; font-size:0.57rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:5px; }
+  .cbox .cv { font-family:'Fira Code',monospace; font-size:1.1rem; font-weight:700; }
+
+  .state-card {
+    background:var(--code-bg); border:1px solid var(--border);
+    border-radius:8px; padding:13px;
+    font-family:'Fira Code',monospace; font-size:0.7rem; line-height:2; margin-bottom:12px;
+  }
+  .sm { font-size:0.57rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .sv { color:var(--current); }
+
+  .counters { display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; margin-bottom:12px; }
+  .cnt-box { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:9px; text-align:center; }
+  .cnt-box .cl { font-family:'Fira Code',monospace; font-size:0.55rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:3px; }
+  .cnt-box .cv { font-family:'Fira Code',monospace; font-size:1.2rem; font-weight:700; }
+
+  /* CODE */
+  pre {
+    background:var(--code-bg); border:1px solid var(--border);
+    border-radius:10px; padding:14px;
+    font-family:'Fira Code',monospace; font-size:0.66rem; line-height:1.95; overflow-x:auto;
+  }
+  .kw{color:#93c5fd;} .ty{color:#67e8f9;} .fn{color:#86efac;} .nu{color:#c4b5fd;} .cm{color:#2d3a50;} .op{color:#fda4af;}
+
+  .cl-line { display:block; border-radius:3px; padding:0 4px; margin:0 -4px; transition:all 0.2s; }
+  .hl-outer  { background:rgba(167,139,250,0.1); border-left:2px solid var(--current); }
+  .hl-init   { background:rgba(167,139,250,0.08); border-left:2px solid var(--current); }
+  .hl-inner  { background:rgba(245,158,11,0.1); border-left:2px solid var(--scanning); }
+  .hl-if     { background:rgba(6,182,212,0.1); border-left:2px solid var(--min); }
+  .hl-swap   { background:rgba(244,63,94,0.1); border-left:2px solid var(--swap); }
+  .hl-istrue { background:rgba(34,197,94,0.08); border-left:2px solid var(--sorted); }
+
+  /* fix highlight on j=i+1 line */
+  .fix-hl { position:relative; }
+  .fix-hl::after {
+    content:'← Fixed! j starts from i+1';
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
+    font-size:0.6rem; color:var(--sorted); background:rgba(34,197,94,0.12);
+    padding:2px 7px; border-radius:4px; white-space:nowrap; pointer-events:none;
+  }
+
+  ol { font-size:0.73rem; color:var(--muted); line-height:2.1; padding-left:16px; }
+  ol li strong { color:var(--text); }
+
+  .diff-box {
+    background:var(--code-bg); border:1px solid var(--border);
+    border-radius:8px; padding:12px; font-family:'Fira Code',monospace; font-size:0.65rem; line-height:1.9;
+  }
+  .diff-old { color:#f87171; text-decoration:line-through; }
+  .diff-new { color:var(--sorted); }
+  .diff-label { color:var(--muted); font-size:0.58rem; }
+
+  @media(max-width:800px) {
+    .layout { grid-template-columns:1fr; }
+    h1 { font-size:1.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1><span class="s1">Selection</span> <span class="s2">Sort</span></h1>
+  <div class="tagline">// Find minimum · Place it · Repeat · O(n²) comparisons · ≤ n-1 swaps</div>
+  <div class="fix-badge">
+    <div class="dot"></div>
+    Updated: j = i+1 (skips self-comparison — 1 fewer compare per pass)
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div class="sec">Controls</div>
+        <div class="controls">
+          <button class="btn btn-run"   id="runBtn"  onclick="startSort()">▶ RUN</button>
+          <button class="btn btn-step"  id="stepBtn" onclick="stepOnce()">STEP →</button>
+          <button class="btn btn-reset" onclick="resetAll()">↺ RESET</button>
+        </div>
+        <div class="speed-row">
+          <label>SPEED</label>
+          <input type="range" id="speed" min="150" max="2000" value="750" step="50">
+          <label id="speedLbl" style="min-width:50px;text-align:right">750ms</label>
+        </div>
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--current)"></div>i (position)</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--scanning)"></div>j (scanning)</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--min)"></div>minIndex ★</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--swap)"></div>swapping</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--sorted)"></div>sorted ✓</div>
+        </div>
+        <div class="sec">Pass Tracker</div>
+        <div class="pass-row" id="passRow"></div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Bar Chart View</div>
+        <div class="bar-scene" id="barScene"></div>
+        <div class="sec">Array Box View</div>
+        <div class="box-row" id="boxRow"></div>
+        <div class="log-box" id="logBox"></div>
+      </div>
+
+      <!-- CODE -->
+      <div class="card">
+        <div class="sec">Your Java Code</div>
+        <pre>
+<span id="cl-outer" class="cl-line"><span class="kw">for</span>(<span class="ty">int</span> i<span class="op">=</span><span class="nu">0</span>; i<span class="op">&lt;</span>size; i++){</span>
+<span id="cl-init"  class="cl-line">  <span class="ty">int</span> minIndex <span class="op">=</span> i;          <span class="cm">// assume i is min</span></span>
+<span id="cl-bool"  class="cl-line">  <span class="ty">boolean</span> isTrue <span class="op">=</span> <span class="kw">false</span>;</span>
+<span id="cl-inner" class="cl-line fix-hl">  <span class="kw">for</span>(<span class="ty">int</span> j<span class="op">=</span>i<span class="op">+</span><span class="nu">1</span>; j<span class="op">&lt;</span>size; j++){  <span class="cm">// j=i+1 skips self</span></span>
+<span id="cl-if"    class="cl-line">    <span class="kw">if</span>(arr[minIndex] <span class="op">&gt;</span> arr[j]){</span>
+<span id="cl-newmin" class="cl-line">      minIndex<span class="op">=</span>j; isTrue<span class="op">=</span><span class="kw">true</span>;  <span class="cm">// new min ★</span></span>
+    }
+  }
+<span id="cl-istrue" class="cl-line">  <span class="kw">if</span>(isTrue){                  <span class="cm">// swap only if needed</span></span>
+<span id="cl-swap"   class="cl-line">    <span class="ty">int</span> temp<span class="op">=</span>arr[minIndex]; arr[minIndex]<span class="op">=</span>arr[i]; arr[i]<span class="op">=</span>temp;</span>
+  }
+}</pre>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card">
+        <div class="sec">Live Variables</div>
+        <div class="state-card" id="stateCard">
+          <div class="sm">Status</div>
+          <div class="sv">Ready — press RUN or STEP</div>
+        </div>
+        <div class="counters">
+          <div class="cnt-box">
+            <div class="cl">Swaps</div>
+            <div class="cv" id="swapCount" style="color:var(--swap)">0</div>
+          </div>
+          <div class="cnt-box">
+            <div class="cl">Compares</div>
+            <div class="cv" id="cmpCount" style="color:var(--scanning)">0</div>
+          </div>
+          <div class="cnt-box">
+            <div class="cl">Pass</div>
+            <div class="cv" id="passCount" style="color:var(--current)">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">What Changed</div>
+        <div class="diff-box">
+          <div class="diff-label">OLD (your first version)</div>
+          <div class="diff-old">for(j = i; j &lt; size; j++)</div>
+          <div style="margin-top:6px" class="diff-label">NEW (fixed)</div>
+          <div class="diff-new">for(j = i+1; j &lt; size; j++)</div>
+          <div style="margin-top:8px;color:var(--muted);font-size:0.62rem;line-height:1.8">
+            Old: compares arr[i] with itself (wasteful)<br>
+            New: starts from i+1 — skips the self-compare<br>
+            <span style="color:var(--sorted)">Saves 1 comparison per pass → n fewer total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec">Complexity</div>
+        <div class="complexity-grid">
+          <div class="cbox"><div class="cl">Best</div>  <div class="cv" style="color:#f87171">O(n²)</div></div>
+          <div class="cbox"><div class="cl">Worst</div> <div class="cv" style="color:#f87171">O(n²)</div></div>
+          <div class="cbox"><div class="cl">Average</div><div class="cv" style="color:var(--scanning)">O(n²)</div></div>
+          <div class="cbox"><div class="cl">Space</div> <div class="cv" style="color:var(--current)">O(1)</div></div>
+        </div>
+        <p style="font-family:'Fira Code',monospace;font-size:0.6rem;color:var(--muted);line-height:1.8">
+          Comparisons: <strong style="color:var(--text)">n(n-1)/2</strong><br>
+          Max Swaps: <strong style="color:var(--sorted)">n-1</strong> (much less than Bubble!)
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="sec">How It Works</div>
+        <ol>
+          <li>Set <strong>minIndex = i</strong></li>
+          <li>Scan from <strong>j = i+1</strong> rightward</li>
+          <li>Found smaller? → <strong>update minIndex ★</strong></li>
+          <li>After scan, <strong>swap</strong> arr[i] ↔ arr[minIndex]</li>
+          <li>arr[i] is now <strong>permanently sorted ✓</strong></li>
+          <li>Advance i, <strong>repeat</strong></li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const INIT = [4, 5, 2, 9, 3, 6, 1];
+  const MAX_VAL = Math.max(...INIT);
+  let steps = [], stepIdx = -1;
+  let running = false, timer = null;
+  let swaps = 0, cmps = 0, passNum = 0;
+
+  const speedEl = document.getElementById('speed');
+  document.getElementById('speedLbl').textContent = speedEl.value + 'ms';
+  speedEl.oninput = () => document.getElementById('speedLbl').textContent = speedEl.value + 'ms';
+
+  /* ── Build all steps ── */
+  function buildSteps() {
+    const a = [...INIT], n = a.length, s = [];
+
+    for (let i = 0; i < n; i++) {
+      let minIndex = i, isTrue = false;
+      s.push({ type:'outer-start', i, minIndex, arr:[...a] });
+
+      // j starts at i+1 now
+      for (let j = i + 1; j < n; j++) {
+        s.push({ type:'scan', i, j, minIndex, isTrue, arr:[...a] });
+        if (a[minIndex] > a[j]) {
+          minIndex = j; isTrue = true;
+          s.push({ type:'new-min', i, j, minIndex, isTrue, arr:[...a] });
+        }
+      }
+
+      s.push({ type:'check-swap', i, minIndex, isTrue, arr:[...a] });
+
+      if (isTrue) {
+        [a[i], a[minIndex]] = [a[minIndex], a[i]];
+        s.push({ type:'swap', i, minIndex, arr:[...a] });
+      } else {
+        s.push({ type:'no-swap', i, minIndex, arr:[...a] });
+      }
+
+      s.push({ type:'pass-done', i, arr:[...a] });
+    }
+
+    s.push({ type:'done', arr:[...a] });
+    return s;
+  }
+
+  /* ── Render ── */
+  function render(arr, stateMap, ptrMap) {
+    renderBars(arr, stateMap);
+    renderBoxes(arr, stateMap, ptrMap);
+  }
+
+  function renderBars(arr, stateMap) {
+    const scene = document.getElementById('barScene');
+    scene.innerHTML = '';
+    arr.forEach((v, i) => {
+      const pct = Math.round((v / MAX_VAL) * 100);
+      const cls = stateMap[i] || '';
+      const wrap = document.createElement('div');
+      wrap.className = 'bar-wrap ' + cls;
+      wrap.innerHTML = `<div class="bar-val">${v}</div><div class="bar" style="height:${pct}%"></div><div class="bar-idx">[${i}]</div>`;
+      scene.appendChild(wrap);
+    });
+  }
+
+  function renderBoxes(arr, stateMap, ptrMap) {
+    const row = document.getElementById('boxRow');
+    row.innerHTML = '';
+    arr.forEach((v, i) => {
+      const cls = stateMap[i] || '';
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;';
+      const ptrDiv = document.createElement('div');
+      ptrDiv.className = 'ptr-labels';
+      (ptrMap[i] || []).forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'ptag ' + t.cls;
+        span.textContent = t.label;
+        ptrDiv.appendChild(span);
+      });
+      const box = document.createElement('div');
+      box.className = 'box ' + cls;
+      box.textContent = v;
+      wrap.appendChild(ptrDiv);
+      wrap.appendChild(box);
+      row.appendChild(wrap);
+    });
+  }
+
+  /* ── Pass badges ── */
+  function buildPasses(n, active, doneCount) {
+    const row = document.getElementById('passRow');
+    row.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('div');
+      b.className = 'pbadge' + (i === active ? ' active' : '') + (i < doneCount ? ' done' : '');
+      b.textContent = 'i=' + i;
+      row.appendChild(b);
+    }
+  }
+
+  /* ── Code highlight ── */
+  const CL = ['cl-outer','cl-init','cl-bool','cl-inner','cl-if','cl-newmin','cl-istrue','cl-swap'];
+  function clearHL() { CL.forEach(id => { const e=document.getElementById(id); if(e) e.className = e.classList.contains('fix-hl') ? 'cl-line fix-hl' : 'cl-line'; }); }
+  function hl(...pairs) {
+    clearHL();
+    pairs.forEach(([id, cls]) => {
+      const e = document.getElementById(id);
+      if (e) e.className = (e.classList.contains('fix-hl') ? 'cl-line fix-hl ' : 'cl-line ') + cls;
+    });
+  }
+
+  /* ── Log ── */
+  function log(msg, cls='') {
+    const box = document.getElementById('logBox');
+    const d = document.createElement('div');
+    d.className = 'll ' + cls;
+    d.textContent = '> ' + msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setState(html) { document.getElementById('stateCard').innerHTML = html; }
+  function updCounters() {
+    document.getElementById('swapCount').textContent = swaps;
+    document.getElementById('cmpCount').textContent = cmps;
+    document.getElementById('passCount').textContent = passNum;
+  }
+
+  /* ── State builder helpers ── */
+  function baseStates(arr, i, sorted) {
+    const m = {};
+    for (let k = 0; k < sorted; k++) m[k] = 's-sorted';
+    return m;
+  }
+
+  /* ── Apply step ── */
+  function applyStep(st) {
+    const n = INIT.length;
+
+    switch (st.type) {
+
+      case 'outer-start': {
+        passNum = st.i + 1; updCounters();
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-current';
+        const pm = { [st.i]: [{label:'i',cls:'i'},{label:'min★',cls:'min'}] };
+        render(st.arr, sm, pm);
+        buildPasses(n, st.i, st.i);
+        hl(['cl-outer','hl-outer'],['cl-init','hl-init'],['cl-bool','hl-init']);
+        log(`━━ Pass ${st.i+1} ━━  i=${st.i}  Scanning j from ${st.i+1} to ${n-1}`, 'pass');
+        setState(`<div class="sm">Outer Loop</div>
+          <div class="sv">i = ${st.i} | minIndex = ${st.i}</div>
+          <div style="color:var(--muted);font-size:0.62rem">isTrue = false | j starts at i+1 = ${st.i+1}</div>`);
+        break;
+      }
+
+      case 'scan': {
+        cmps++; updCounters();
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-current';
+        if (st.minIndex !== st.i) sm[st.minIndex] = 's-min';
+        if (st.j !== st.minIndex) sm[st.j] = 's-scanning';
+        const pm = {};
+        pm[st.i] = st.minIndex === st.i ? [{label:'i',cls:'i'},{label:'min★',cls:'min'}] : [{label:'i',cls:'i'}];
+        if (st.minIndex !== st.i) pm[st.minIndex] = [{label:'min★',cls:'min'}];
+        if (st.j !== st.i && st.j !== st.minIndex) pm[st.j] = [{label:'j',cls:'j'}];
+        render(st.arr, sm, pm);
+        hl(['cl-inner','hl-inner'],['cl-if','hl-if']);
+        const bigger = st.arr[st.minIndex] > st.arr[st.j];
+        log(`j=${st.j}: arr[${st.minIndex}]=${st.arr[st.minIndex]} > arr[${st.j}]=${st.arr[st.j]}? ${bigger?'YES → new min!':'NO → keep'}`, bigger?'newmin':'scan');
+        setState(`<div class="sm">Scanning j = ${st.j}</div>
+          <div class="sv">arr[j]=${st.arr[st.j]} vs arr[min]=${st.arr[st.minIndex]}</div>
+          <div style="color:var(--muted);font-size:0.62rem">${st.arr[st.minIndex]} > ${st.arr[st.j]} ? ${bigger?'<span style="color:var(--min)">YES → update</span>':'NO → skip'}</div>`);
+        break;
+      }
+
+      case 'new-min': {
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-current';
+        sm[st.minIndex] = 's-min';
+        const pm = {
+          [st.i]: [{label:'i',cls:'i'}],
+          [st.minIndex]: [{label:'j',cls:'j'},{label:'min★',cls:'min'}]
+        };
+        render(st.arr, sm, pm);
+        hl(['cl-if','hl-if'],['cl-newmin','hl-if']);
+        log(`★ New min! minIndex = ${st.minIndex}  value = ${st.arr[st.minIndex]}`, 'newmin');
+        setState(`<div class="sm">New Minimum!</div>
+          <div style="color:var(--min);font-weight:700">★ minIndex = ${st.minIndex} | value = ${st.arr[st.minIndex]}</div>
+          <div style="color:var(--muted);font-size:0.62rem">isTrue = true</div>`);
+        break;
+      }
+
+      case 'check-swap': {
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-current';
+        if (st.isTrue && st.minIndex !== st.i) sm[st.minIndex] = 's-min';
+        render(st.arr, sm, {});
+        hl(['cl-istrue','hl-istrue']);
+        log(`Scan done. isTrue=${st.isTrue} → ${st.isTrue?`swap arr[${st.i}] ↔ arr[${st.minIndex}]`:'no swap (already minimum)'}`, st.isTrue?'swp':'skip');
+        setState(`<div class="sm">Check isTrue</div>
+          <div class="sv">isTrue = ${st.isTrue}</div>
+          <div style="color:var(--muted);font-size:0.62rem">${st.isTrue?`→ Swap i=${st.i} with minIndex=${st.minIndex}`:'→ arr[i] already minimum, skip'}</div>`);
+        break;
+      }
+
+      case 'swap': {
+        swaps++; updCounters();
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-swap';
+        sm[st.minIndex] = 's-swap';
+        const pm = {
+          [st.i]: [{label:'i',cls:'i'}],
+          [st.minIndex]: [{label:'was min',cls:'min'}]
+        };
+        render(st.arr, sm, pm);
+        hl(['cl-swap','hl-swap']);
+        log(`↕ SWAP! arr[${st.i}]=${st.arr[st.i]} ⟷ arr[${st.minIndex}]=${st.arr[st.minIndex]}  →  [${st.arr.join(', ')}]`, 'swp');
+        setState(`<div class="sm">Swapping!</div>
+          <div style="color:var(--swap);font-weight:700;font-size:0.82rem">↕ arr[${st.i}] ⟷ arr[${st.minIndex}]</div>
+          <div style="color:var(--muted);font-size:0.62rem;margin-top:4px">arr[${st.i}] = ${st.arr[st.i]} placed correctly</div>`);
+        break;
+      }
+
+      case 'no-swap': {
+        const sm = {};
+        for (let k = 0; k < st.i; k++) sm[k] = 's-sorted';
+        sm[st.i] = 's-sorted';
+        render(st.arr, sm, {});
+        hl(['cl-istrue','hl-istrue']);
+        log(`No swap — arr[${st.i}]=${st.arr[st.i]} already minimum ✓`, 'skip');
+        setState(`<div class="sm">No Swap Needed</div>
+          <div style="color:var(--sorted)">arr[${st.i}] = ${st.arr[st.i]} already in place ✓</div>`);
+        break;
+      }
+
+      case 'pass-done': {
+        const sm = {};
+        for (let k = 0; k <= st.i; k++) sm[k] = 's-sorted';
+        render(st.arr, sm, {});
+        buildPasses(n, -1, st.i + 1);
+        log(`Pass ${st.i+1} done ✓  [${st.arr.join(', ')}]`, 'pass');
+        setState(`<div class="sm">Pass ${st.i+1} Done</div>
+          <div style="color:var(--sorted)">arr[${st.i}]=${st.arr[st.i]} sorted ✓</div>
+          <div style="color:var(--muted);font-size:0.62rem">Sorted: indices 0..${st.i}</div>`);
+        break;
+      }
+
+      case 'done': {
+        const sm = {};
+        st.arr.forEach((_, i) => sm[i] = 's-sorted');
+        render(st.arr, sm, {});
+        buildPasses(n, -1, n);
+        clearHL();
+        log(`✓ SORTED! [${st.arr.join(', ')}]  |  ${swaps} swaps · ${cmps} comparisons`, 'done');
+        setState(`<div class="sm">Complete!</div>
+          <div style="color:var(--sorted);font-size:0.85rem;font-weight:700">✓ Fully sorted!</div>
+          <div style="color:var(--muted);font-size:0.62rem;margin-top:4px">[${st.arr.join(', ')}]</div>
+          <div style="color:var(--muted);font-size:0.62rem">${swaps} swaps · ${cmps} comparisons</div>`);
+        break;
+      }
+    }
+  }
+
+  /* ── Controls ── */
+  function stepOnce() {
+    if (stepIdx === -1) {
+      steps = buildSteps(); swaps = 0; cmps = 0; passNum = 0; updCounters();
+    }
+    stepIdx++;
+    if (stepIdx < steps.length) applyStep(steps[stepIdx]);
+    if (stepIdx >= steps.length - 1) document.getElementById('stepBtn').disabled = true;
+  }
+
+  function startSort() {
+    if (running) return;
+    resetAll();
+    steps = buildSteps(); swaps = 0; cmps = 0; passNum = 0; updCounters();
+    running = true;
+    document.getElementById('runBtn').disabled = true;
+    function tick() {
+      stepIdx++;
+      if (stepIdx < steps.length) {
+        applyStep(steps[stepIdx]);
+        timer = setTimeout(tick, parseInt(speedEl.value));
+      } else {
+        running = false;
+        document.getElementById('runBtn').disabled = false;
+      }
+    }
+    tick();
+  }
+
+  function resetAll() {
+    clearTimeout(timer); running = false;
+    stepIdx = -1; steps = [];
+    swaps = 0; cmps = 0; passNum = 0; updCounters();
+    render([...INIT], {}, {});
+    buildPasses(INIT.length, -1, 0);
+    document.getElementById('logBox').innerHTML = '';
+    document.getElementById('runBtn').disabled = false;
+    document.getElementById('stepBtn').disabled = false;
+    clearHL();
+    setState(`<div class="sm">Status</div><div class="sv">Ready — press RUN or STEP</div>`);
+  }
+
+  // init
+  render([...INIT], {}, {});
+  buildPasses(INIT.length, -1, 0);
+</script>
+</body>
+</html>
